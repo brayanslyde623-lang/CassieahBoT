@@ -140,7 +140,6 @@ const configs: Config[] = [
       { spectralArgs }
     ) {
       const canv = CanvCass.premade();
-      canv.changeScale(2);
 
       await money.ensureUserInfo(input.senderID);
       let senderID = input.senderID;

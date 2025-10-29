@@ -233,7 +233,6 @@ export async function entry({
       width: canv.width,
       height: canv.height / 2,
     });
-    canv.changeScale(2);
     await canv.drawBackground();
     canv.drawBox({
       rect: container,
@@ -258,8 +257,8 @@ export async function entry({
       x: emoBox.centerX,
       y: emoBox.centerY,
     });
-    const fSize = 50;
-    canv.drawText(gachaGift.name, {
+    const fSize = 55;
+    canv.drawText(`${gachaGift.name} (${gachaGift.key})`, {
       fontType: "cbold",
       align: "left",
       size: fSize,
@@ -272,12 +271,63 @@ export async function entry({
     canv.drawText(gachaGift.flavorText, {
       fontType: "cbold",
       align: "left",
-      size: fSize * 0.7,
+      size: 40,
       x: emoBox.right + margin,
       y: emoBox.top + fSize + fm,
       breakMaxWidth: canv.right - emoBox.right - margin * 2,
       vAlign: "bottom",
       fill: "rgba(255, 255, 255, 0.7)",
+    });
+
+    canv.drawText(`✨ CassieahBoT`, {
+      fontType: "cbold",
+      align: "left",
+      size: 65,
+      x: canv.left + margin,
+      y: (container.top - canv.top) / 2,
+      fill: "rgba(255, 255, 255, 1)",
+    });
+
+    canv.drawText(`🎁`, {
+      fontType: "cbold",
+      size: 150,
+      x: canv.right - 150 / 2,
+      y: canv.bottom - 250 / 2 + 20,
+      align: "center",
+      fill: "white",
+    });
+    canv.drawText(`🎁`, {
+      fontType: "cbold",
+      size: 250,
+      x: canv.right - 250 / 2,
+      y: canv.bottom,
+      align: "center",
+      fill: "white",
+    });
+    canv.drawText(`🎁`, {
+      fontType: "cbold",
+      size: 150,
+      x: canv.left + 150 / 2,
+      y: canv.bottom - 250 / 2 + 20,
+      align: "center",
+      fill: "white",
+    });
+    canv.drawText(`🎁`, {
+      fontType: "cbold",
+      size: 250,
+      x: canv.left + 250 / 2,
+      y: canv.bottom,
+      align: "center",
+      fill: "white",
+    });
+
+    canv.drawText(`Free Gift`, {
+      fontType: "cbold",
+      align: "center",
+      size: 80,
+      x: canv.centerX,
+      y: container.bottom + (canv.bottom - container.bottom) / 2,
+      fill: "rgba(255, 255, 255, 1)",
     });
 
     return output.attach(claimedGift, await canv.toStream());

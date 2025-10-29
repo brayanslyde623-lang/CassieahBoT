@@ -26,7 +26,6 @@ export async function use(obj) {
     input.text.trim() === prefix
   ) {
     const canv = new CanvCass(CanvCass.preW, CanvCass.preH / 1.7);
-    canv.changeScale(2);
     await canv.drawBackground();
 
     const container = CanvCass.createRect({

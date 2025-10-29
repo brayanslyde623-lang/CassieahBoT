@@ -3,7 +3,7 @@
     "money": 10,
     "exp": 0,
     "battlePoints": 410,
-    "lastModified": 1761734749499,
+    "lastModified": 1761735499433,
     "name": "Liane",
     "usernameHistory": [
       "Liane"
@@ -162,15 +162,15 @@
         "cannotToss": false
       },
       {
-        "name": "Special Gift #2",
-        "icon": "🎁⚔️",
-        "flavorText": "Either a weapon your pet could wield, a rare irrelevant item, or just some trash.",
+        "name": "Special Gift #1",
+        "icon": "🎁🍒",
+        "flavorText": "Either a feast for your pet, a rare irrelevant item, or just some trash.",
         "sellPrice": 100,
         "type": "roulette_pack",
-        "treasureKey": "randomGroupedBiasFirst_weaponpack_generic",
-        "key": "wGiftPack",
+        "treasureKey": "randomGroupedBiasFirst_foodpack_generic",
+        "key": "fGiftPack",
         "cannotSend": true,
-        "uuid": "1761732674943_daf7c0e1-5ac3-4abd-85d2-c499d1e13842",
+        "uuid": "1761735012925_dd0e616c-ba98-4a8e-b4f0-88ce5ca89fa2",
         "index": 5,
         "cannotToss": false
       },
@@ -183,7 +183,7 @@
         "treasureKey": "randomGroupedBiasFirst_weaponpack_generic",
         "key": "wGiftPack",
         "cannotSend": true,
-        "uuid": "1761734116342_db645e54-dcea-4573-a8fd-572144c31951",
+        "uuid": "1761732674943_daf7c0e1-5ac3-4abd-85d2-c499d1e13842",
         "index": 6,
         "cannotToss": false
       },
@@ -196,7 +196,7 @@
         "treasureKey": "randomGroupedBiasFirst_weaponpack_generic",
         "key": "wGiftPack",
         "cannotSend": true,
-        "uuid": "1761734518632_d654df08-68ba-42fa-a508-22b426e6b8c6",
+        "uuid": "1761734116342_db645e54-dcea-4573-a8fd-572144c31951",
         "index": 7,
         "cannotToss": false
       },
@@ -209,7 +209,7 @@
         "treasureKey": "randomGroupedBiasFirst_weaponpack_generic",
         "key": "wGiftPack",
         "cannotSend": true,
-        "uuid": "1761734531334_3bf6758f-f83c-4abd-9679-1562a0ccebf7",
+        "uuid": "1761734518632_d654df08-68ba-42fa-a508-22b426e6b8c6",
         "index": 8,
         "cannotToss": false
       },
@@ -222,8 +222,47 @@
         "treasureKey": "randomGroupedBiasFirst_weaponpack_generic",
         "key": "wGiftPack",
         "cannotSend": true,
-        "uuid": "1761734717131_9fb2ef5a-997b-43f3-8603-d17098cbbfae",
+        "uuid": "1761734531334_3bf6758f-f83c-4abd-9679-1562a0ccebf7",
         "index": 9,
+        "cannotToss": false
+      },
+      {
+        "name": "Special Gift #2",
+        "icon": "🎁⚔️",
+        "flavorText": "Either a weapon your pet could wield, a rare irrelevant item, or just some trash.",
+        "sellPrice": 100,
+        "type": "roulette_pack",
+        "treasureKey": "randomGroupedBiasFirst_weaponpack_generic",
+        "key": "wGiftPack",
+        "cannotSend": true,
+        "uuid": "1761734717131_9fb2ef5a-997b-43f3-8603-d17098cbbfae",
+        "index": 10,
+        "cannotToss": false
+      },
+      {
+        "name": "Special Gift #2",
+        "icon": "🎁⚔️",
+        "flavorText": "Either a weapon your pet could wield, a rare irrelevant item, or just some trash.",
+        "sellPrice": 100,
+        "type": "roulette_pack",
+        "treasureKey": "randomGroupedBiasFirst_weaponpack_generic",
+        "key": "wGiftPack",
+        "cannotSend": true,
+        "uuid": "1761735034818_c8ea5409-7983-4e0b-a4c6-2f6b46928653",
+        "index": 11,
+        "cannotToss": false
+      },
+      {
+        "name": "Special Gift #2",
+        "icon": "🎁⚔️",
+        "flavorText": "Either a weapon your pet could wield, a rare irrelevant item, or just some trash.",
+        "sellPrice": 100,
+        "type": "roulette_pack",
+        "treasureKey": "randomGroupedBiasFirst_weaponpack_generic",
+        "key": "wGiftPack",
+        "cannotSend": true,
+        "uuid": "1761735281779_650627e5-5b9c-475e-a795-28eb478a7181",
+        "index": 12,
         "cannotToss": false
       },
       {
@@ -236,7 +275,7 @@
         "key": "uGiftPack",
         "cannotSend": true,
         "uuid": "1761732627757_b9729c6e-4dd9-47f9-bd39-562512247bf0",
-        "index": 10,
+        "index": 13,
         "cannotToss": false
       },
       {
@@ -249,7 +288,7 @@
         "key": "uGiftPack",
         "cannotSend": true,
         "uuid": "1761733030872_5fa8c1cb-f6f7-4932-afd3-dd61a513eee9",
-        "index": 11,
+        "index": 14,
         "cannotToss": false
       },
       {
@@ -262,7 +301,20 @@
         "key": "uGiftPack",
         "cannotSend": true,
         "uuid": "1761734650536_029487b4-3c02-4d4c-b9e0-6e87b25d14a3",
-        "index": 12,
+        "index": 15,
+        "cannotToss": false
+      },
+      {
+        "name": "Special Gift #3",
+        "icon": "🎁❌",
+        "flavorText": "Either a trash, a rare irrelevant item, or more trash.",
+        "sellPrice": 100,
+        "type": "roulette_pack",
+        "treasureKey": "randomGroupedBiasFirst_unlucky_curse_generic",
+        "key": "uGiftPack",
+        "cannotSend": true,
+        "uuid": "1761735207661_da691bd0-0796-4585-a7a8-848695967d7f",
+        "index": 16,
         "cannotToss": false
       },
       {
@@ -275,7 +327,7 @@
         "key": "pGiftPack",
         "cannotSend": true,
         "uuid": "1761732948493_03e914f4-396b-4ede-95aa-7538051beb46",
-        "index": 13,
+        "index": 17,
         "cannotToss": false
       },
       {
@@ -288,7 +340,7 @@
         "key": "pGiftPack",
         "cannotSend": true,
         "uuid": "1761734351204_738a6a3b-f586-4b3e-b90e-cc25a072555a",
-        "index": 14,
+        "index": 18,
         "cannotToss": false
       },
       {
@@ -301,7 +353,33 @@
         "key": "pGiftPack",
         "cannotSend": true,
         "uuid": "1761734639993_ef47c3d9-08f7-4df7-a82c-f5b5ba76dc58",
-        "index": 15,
+        "index": 19,
+        "cannotToss": false
+      },
+      {
+        "name": "Special Gift #4",
+        "icon": "🎁🐶",
+        "flavorText": "Either a new companion, a rare irrelevant item, or just some trash.",
+        "sellPrice": 100,
+        "type": "roulette_pack",
+        "treasureKey": "randomGroupedBiasFirst_generic_petsI_petsII_petsIII",
+        "key": "pGiftPack",
+        "cannotSend": true,
+        "uuid": "1761735436336_5daa3801-61cc-4c41-bcc4-dea0a032d5e5",
+        "index": 20,
+        "cannotToss": false
+      },
+      {
+        "name": "Special Gift #4",
+        "icon": "🎁🐶",
+        "flavorText": "Either a new companion, a rare irrelevant item, or just some trash.",
+        "sellPrice": 100,
+        "type": "roulette_pack",
+        "treasureKey": "randomGroupedBiasFirst_generic_petsI_petsII_petsIII",
+        "key": "pGiftPack",
+        "cannotSend": true,
+        "uuid": "1761735499432_513acdb3-90a3-4844-a43e-df1428a89549",
+        "index": 26,
         "cannotToss": false
       },
       {
@@ -314,7 +392,7 @@
         "key": "nGiftPack",
         "cannotSend": true,
         "uuid": "1761734159553_6cab488d-fae9-4e72-b822-481a07dd5a7b",
-        "index": 16,
+        "index": 21,
         "cannotToss": false
       },
       {
@@ -327,7 +405,7 @@
         "key": "nGiftPack",
         "cannotSend": true,
         "uuid": "1761734707323_f8733af6-13e0-4b70-8dad-df513477d0be",
-        "index": 17,
+        "index": 22,
         "cannotToss": false
       },
       {
@@ -340,7 +418,33 @@
         "key": "nGiftPack",
         "cannotSend": true,
         "uuid": "1761734749498_ba0a70dd-bde5-431d-bd2a-daff5d95041d",
-        "index": 18,
+        "index": 23,
+        "cannotToss": false
+      },
+      {
+        "name": "Special Gift #5",
+        "icon": "🎁🎴",
+        "flavorText": "Either a rare important item, or maybe some trash.",
+        "sellPrice": 100,
+        "type": "roulette_pack",
+        "treasureKey": "randomGroupedBiasFirst_generic_unlucky",
+        "key": "nGiftPack",
+        "cannotSend": true,
+        "uuid": "1761734956453_fe8c7d56-e398-4b1c-a417-759ab392be0e",
+        "index": 24,
+        "cannotToss": false
+      },
+      {
+        "name": "Special Gift #5",
+        "icon": "🎁🎴",
+        "flavorText": "Either a rare important item, or maybe some trash.",
+        "sellPrice": 100,
+        "type": "roulette_pack",
+        "treasureKey": "randomGroupedBiasFirst_generic_unlucky",
+        "key": "nGiftPack",
+        "cannotSend": true,
+        "uuid": "1761735379602_b8419a38-efd6-4b33-aae3-30d3e372c340",
+        "index": 25,
         "cannotToss": false
       }
     ],
@@ -1064,6 +1168,6 @@
       "emptyIcon": "⬜"
     },
     "tilesStamp": 1761726532744,
-    "lastGiftClaim": 1761734749498
+    "lastGiftClaim": 1761735499432
   }
 }
