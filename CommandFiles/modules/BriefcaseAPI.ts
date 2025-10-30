@@ -407,6 +407,7 @@ export type BriefcaseAPIExtraConfig = Partial<SpectraMainConfig> & {
   meta?: CommandMeta;
   readonly?: boolean;
   showAdminFeat?: boolean;
+  itemLister?: (item: InventoryItem, amount: number) => string;
 };
 
 export class BriefcaseAPI {
@@ -426,6 +427,7 @@ export class BriefcaseAPI {
     extraConfig.showCollectibles ??= true;
     extraConfig.readonly ??= false;
     extraConfig.showAdminFeat ??= true;
+    extraConfig.itemLister ??= (item, amount) => listItem(item, amount);
     this.meta = extraConfig.meta;
     this.extraConfig = extraConfig;
     this.extraItems = extraItems ?? [];
@@ -569,7 +571,9 @@ export class BriefcaseAPI {
           const items = inventory.getAll();
           const grouped = [...bcContext.groupItems(items).values()];
 
-          let itemList = grouped.map((i) => listItem(i, i.amount)).join("\n");
+          let itemList = grouped
+            .map((i) => self.extraConfig.itemLister(i, i.amount))
+            .join("\n");
 
           const finalRes =
             (otherTarget

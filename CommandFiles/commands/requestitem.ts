@@ -1,5 +1,5 @@
-import { parseBet } from "@cass-modules/ArielUtils";
-import { BriefcaseAPI } from "@cass-modules/BriefcaseAPI";
+import { formatCash, parseBet } from "@cass-modules/ArielUtils";
+import { BriefcaseAPI, listItem } from "@cass-modules/BriefcaseAPI";
 import {
   ArmorInventoryItem,
   ChequeItem,
@@ -8,6 +8,7 @@ import {
 } from "@cass-modules/cassidyUser";
 import { Datum } from "@cass-modules/Datum";
 import { Inventory } from "@cass-modules/InventoryEnhanced";
+import { Slicer } from "@cass-plugins/utils-liane";
 import { UNISpectra } from "@cassidy/unispectra";
 
 export const meta: CommandMeta = {
@@ -15,7 +16,7 @@ export const meta: CommandMeta = {
   description:
     "Request, approve, buy, sell your and the community's custom items!",
   author: "Liane Cagara",
-  version: "1.0.0",
+  version: "1.1.0",
   category: "Shopping",
   role: 0,
   waitingTime: 1,
@@ -41,6 +42,8 @@ export type RequestInvItem = InventoryItem & {
   priceType?: "money" | "gem";
   authorID?: string;
   submissionDate?: number;
+  likes?: string[];
+  dislikes?: string[];
 };
 
 export const itemTemplate: {
@@ -207,12 +210,25 @@ const home = new BriefcaseAPI(
   {
     isHypen: false,
     inventoryKey: "myreqitem",
-    inventoryName: "My Request",
+    inventoryName: "Submission",
     inventoryIcon: "📤",
-    inventoryLimit: Cassidy.invLimit,
+    inventoryLimit: 18,
     showCollectibles: false,
     showAdminFeat: false,
-    ignoreFeature: ["top", "all", "trade", "sell", "use", "transfer"],
+    itemLister(item, amount) {
+      return `${listItem(item, amount, { bold: true })} - ${formatCash(
+        (item as RequestInvItem).shopPrice
+      )}\n${UNISpectra.arrowFromT} ${item.flavorText}\n`;
+    },
+    ignoreFeature: [
+      "top",
+      "all",
+      "trade",
+      "sell",
+      "use",
+      "transfer",
+      "inspect",
+    ],
   },
   [
     {
@@ -280,13 +296,44 @@ const home = new BriefcaseAPI(
       },
     },
     {
+      key: "getjsonsub",
+      description: "Extract the JSON of an item from your submissions.",
+      args: ["<item_key>"],
+      async handler({ output }, { spectralArgs }, { userData, inventory }) {
+        const key = spectralArgs[0];
+        const head = `👤 **${userData.name || "Unregistered"}**\n\n`;
+
+        if (!key) {
+          return output.reply(
+            head +
+              `Please provide the **item key** of an item from your submissions to get the JSON data.`
+          );
+        }
+        const item = inventory.getOne(key);
+        if (!item) {
+          return output.reply(
+            head + `Item with key "${key}" does **not** exist.`
+          );
+        }
+        return output.reply(
+          head +
+            `📄 Here is the requested **JSON Data**\n\n${JSON.stringify(
+              item,
+              null,
+              2
+            )}`
+        );
+      },
+    },
+    {
       key: "submit",
       description: "Submit a JSON of your requested item.",
       args: ["<json data>"],
+      aliases: ["s", "sub", "new"],
       async handler(
         { output, usersDB, input },
         { spectralArgs },
-        { userData, inventory, iKey, listItem }
+        { userData, inventory, iKey, listItem, instance }
       ) {
         const head = `👤 **${userData.name || "Unregistered"}**\n\n`;
         if (inventory.size() >= inventory.limit) {
@@ -302,12 +349,35 @@ const home = new BriefcaseAPI(
           return output.reply(head + `${rej}\n${validation.err}`);
         }
         const item = validation.item;
-        if (inventory.has(item.key)) {
+        const all = await usersDB.getAllCache();
+        const allSubs = Object.entries(all)
+          .map((i) => {
+            const sub: RequestInvItem[] = i[1][iKey] ?? [];
+            return sub.map((s) => {
+              s.submissionDate ??= 0;
+              return {
+                item: s,
+                uid: i[0],
+                userData: i[1],
+              };
+            });
+          })
+          .flat();
+        const exists = allSubs.find((i) => i.item.key === item.key);
+        if (exists) {
           return output.reply(
             head +
-              `${rej}\nItem with the key of "${item.key}" already exists in your requested items, you might consider tossing it, or using a different item key.`
+              `${rej}\nItem with the key of "${
+                item.key
+              }" already exists in the global submissions, if the item is yours, you might consider tossing it, or using a different item key.\n\n${
+                UNISpectra.arrow
+              }** By 👤${
+                exists.userData.name ?? "Unknown"
+              }**\n${instance.extraConfig.itemLister(exists.item, 1)}`
           );
         }
+        item.uuid = Inventory.generateUUID();
+        item.submissionDate = Date.now();
         inventory.addOne(item);
         await usersDB.setItem(input.senderID, {
           [iKey]: Array.from(inventory),
@@ -318,7 +388,9 @@ const home = new BriefcaseAPI(
               UNISpectra.disc
             } ✅ Your submission has been successful. Please wait for the **admin approval**.\n\n${listItem(
               item
-            )}\n${UNISpectra.charm} ${item.flavorText}\n\n${JSON.stringify(
+            )} - ${formatCash(item.shopPrice)}\n${UNISpectra.charm} ${
+              item.flavorText
+            }\n\n${JSON.stringify(
               item,
               null,
               2
@@ -326,8 +398,257 @@ const home = new BriefcaseAPI(
         );
       },
     },
+
+    {
+      key: "recent",
+      description: "View recent submissions",
+      args: ["[page]"],
+      aliases: ["r", "newest"],
+      async handler({ output, usersDB }, { spectralArgs }, { iKey }) {
+        const page = Number(spectralArgs[0]) || 1;
+
+        const all = await usersDB.getAllCache();
+        const allSubs = Object.entries(all)
+          .map((i) => {
+            const sub: RequestInvItem[] = i[1][iKey] ?? [];
+            return sub.map((s) => {
+              s.submissionDate ??= 0;
+              return {
+                item: s,
+                uid: i[0],
+                userData: i[1],
+              };
+            });
+          })
+          .flat()
+          .sort((a, b) => b.item.submissionDate - a.item.submissionDate);
+        const pagedSubmissions = new Slicer(allSubs, 8);
+        const pageData = pagedSubmissions.getPage(page);
+        const h = [
+          "name",
+          "key",
+          "icon",
+          "flavorText",
+          "shopPrice",
+          "uuid",
+          "submissionDate",
+          "author",
+          "index",
+          "cannotToss",
+        ];
+        const mapped = pageData
+          .map(
+            (submission) =>
+              `${listItem(submission.item, 1, { bold: true })} - ${formatCash(
+                (submission.item as RequestInvItem).shopPrice
+              )}\n${UNISpectra.arrow} **By 👤 ${
+                submission.userData?.name ?? "Unknown"
+              }**\n${renderLikes(submission.item)}\n${
+                UNISpectra.charm
+              } **Description:** ${
+                submission.item.flavorText
+              }\n${Object.entries(submission.item)
+                .filter((e) => !h.includes(e[0]))
+                .map(
+                  (e) =>
+                    `${UNISpectra.charm} **${e[0].toTitleCase()}**: ${e[1]}`
+                )
+                .join("\n")}`
+          )
+          .join(`\n${UNISpectra.standardLine}\n`);
+        return output.reply(
+          `🕒 **Recent Submissions** (Page **${page}** of **${
+            pagedSubmissions.pagesLength
+          }**)\n${UNISpectra.standardLine}\n${
+            mapped || "🧹 No submissions."
+          }\n${
+            UNISpectra.standardLine
+          }\nUse the **view** option to get a detailed look of the submission.`
+        );
+      },
+    },
+    {
+      key: "view",
+      description: "View a specific submission by item key.",
+      args: ["<key>"],
+      aliases: ["v"],
+      async handler({ output, usersDB }, { spectralArgs }, { iKey }) {
+        const key = spectralArgs[0];
+        if (!key) {
+          return output.reply(
+            `Please provide the item key for the submission as argument.`
+          );
+        }
+        const all = await usersDB.getAllCache();
+
+        const allSubs = Object.entries(all)
+          .map((i) => {
+            const sub: RequestInvItem[] = i[1][iKey] ?? [];
+            return sub.map((s) => {
+              s.submissionDate ??= 0;
+              return {
+                item: s,
+                uid: i[0],
+                userData: i[1],
+              };
+            });
+          })
+          .flat();
+        const submission = allSubs.find((i) => i.item.key === key);
+        if (!submission) {
+          return output.reply(`No submissions are found with key "${key}"`);
+        }
+        const h = [
+          "name",
+          "key",
+          "icon",
+          "flavorText",
+          "shopPrice",
+          "uuid",
+          "submissionDate",
+          "author",
+          "index",
+          "cannotToss",
+        ];
+        const mapped = `${listItem(submission.item, 1, {
+          bold: true,
+        })} - ${formatCash((submission.item as RequestInvItem).shopPrice)}\n${
+          UNISpectra.arrow
+        } **By 👤 ${submission.userData?.name ?? "Unknown"}**\n${renderLikes(
+          submission.item
+        )}\n${UNISpectra.charm} **Description:** ${
+          submission.item.flavorText
+        }\n${Object.entries(submission.item)
+          .filter((e) => !h.includes(e[0]))
+          .map((e) => `${UNISpectra.charm} **${e[0].toTitleCase()}**: ${e[1]}`)
+          .join("\n")}\n\n${JSON.stringify(submission.item, null, 2)}`;
+
+        return output.reply(`${mapped || "🧹 No submission found."}`);
+      },
+    },
+    {
+      key: "like",
+      description: "Like a specific submission by item key.",
+      args: ["<key>"],
+      async handler({ output, usersDB, input }, { spectralArgs }, { iKey }) {
+        const key = spectralArgs[0];
+        if (!key) {
+          return output.reply(
+            `Please provide the item key for the submission as argument.`
+          );
+        }
+        const all = await usersDB.getAllCache();
+
+        const allSubs = Object.entries(all)
+          .map((i) => {
+            const sub: RequestInvItem[] = i[1][iKey] ?? [];
+            return sub.map((s) => {
+              s.submissionDate ??= 0;
+              return {
+                item: s,
+                uid: i[0],
+                userData: i[1],
+              };
+            });
+          })
+          .flat();
+        const submission = allSubs.find((i) => i.item.key === key);
+        if (!submission) {
+          return output.reply(`No submissions are found with key "${key}"`);
+        }
+        submission.item.dislikes ??= [];
+        submission.item.likes ??= [];
+        submission.item.likes.remove(input.senderID);
+        submission.item.likes.push(input.senderID);
+        submission.userData[iKey] ??= [];
+        submission.item.dislikes.remove(input.senderID);
+        submission.userData[iKey].remove(submission.item);
+        submission.userData[iKey].push(submission.item);
+
+        await usersDB.setItem(submission.uid, {
+          [iKey]: submission.userData[iKey],
+        });
+
+        const mapped = `👍 **Liked Successfully**\n\n${listItem(
+          submission.item,
+          1,
+          {
+            bold: true,
+          }
+        )} - ${formatCash((submission.item as RequestInvItem).shopPrice)}\n${
+          UNISpectra.arrow
+        } **By 👤 ${submission.userData?.name ?? "Unknown"}**\n${renderLikes(
+          submission.item
+        )}\n${UNISpectra.charm} **Description:** ${submission.item.flavorText}`;
+
+        return output.reply(`${mapped || "🧹 No submission found."}`);
+      },
+    },
+    {
+      key: "dislike",
+      description: "Dislike a specific submission by item key.",
+      args: ["<key>"],
+      async handler({ output, usersDB, input }, { spectralArgs }, { iKey }) {
+        const key = spectralArgs[0];
+        if (!key) {
+          return output.reply(
+            `Please provide the item key for the submission as argument.`
+          );
+        }
+        const all = await usersDB.getAllCache();
+
+        const allSubs = Object.entries(all)
+          .map((i) => {
+            const sub: RequestInvItem[] = i[1][iKey] ?? [];
+            return sub.map((s) => {
+              s.submissionDate ??= 0;
+              return {
+                item: s,
+                uid: i[0],
+                userData: i[1],
+              };
+            });
+          })
+          .flat();
+        const submission = allSubs.find((i) => i.item.key === key);
+        if (!submission) {
+          return output.reply(`No submissions are found with key "${key}"`);
+        }
+        submission.item.dislikes ??= [];
+        submission.item.likes ??= [];
+        submission.item.dislikes.remove(input.senderID);
+        submission.item.dislikes.push(input.senderID);
+        submission.userData[iKey] ??= [];
+        submission.item.likes.remove(input.senderID);
+        submission.userData[iKey].remove(submission.item);
+        submission.userData[iKey].push(submission.item);
+
+        await usersDB.setItem(submission.uid, {
+          [iKey]: submission.userData[iKey],
+        });
+
+        const mapped = `👎 **Disliked Successfully**\n\n${listItem(
+          submission.item,
+          1,
+          {
+            bold: true,
+          }
+        )} - ${formatCash((submission.item as RequestInvItem).shopPrice)}\n${
+          UNISpectra.arrow
+        } **By 👤 ${submission.userData?.name ?? "Unknown"}**\n${renderLikes(
+          submission.item
+        )}\n${UNISpectra.charm} **Description:** ${submission.item.flavorText}`;
+
+        return output.reply(`${mapped || "🧹 No submission found."}`);
+      },
+    },
   ]
 );
+
+export function renderLikes(item: RequestInvItem) {
+  const result = (item.likes ?? []).length - (item.dislikes ?? []).length;
+  return `${result < 0 ? `👎` : `👍`} **${Math.abs(result).toLocaleString()}**`;
+}
 
 export function validateItemSubmission(itemStr: string | RequestInvItem):
   | {
@@ -335,6 +656,12 @@ export function validateItemSubmission(itemStr: string | RequestInvItem):
       item: RequestInvItem;
     }
   | { success: false; err: string } {
+  if (!itemStr) {
+    return {
+      success: false,
+      err: `The JSON Data is missing, make sure to paste your modified json data.`,
+    };
+  }
   let item: RequestInvItem;
   if (typeof itemStr === "string") {
     try {
@@ -432,7 +759,7 @@ export function validateItemSubmission(itemStr: string | RequestInvItem):
     };
   }
   item.shopPrice = Number(item.shopPrice) || 0;
-  item.sellPrice = Number(item.shopPrice) || 0;
+  item.sellPrice = Number(item.sellPrice) || 0;
   if (item.shopPrice <= 0) {
     return {
       success: false,

@@ -3,7 +3,7 @@
     "money": 10020703,
     "exp": 0,
     "battlePoints": 510,
-    "lastModified": 1761798622347,
+    "lastModified": 1761815129303,
     "name": "Liane",
     "usernameHistory": [
       "Liane"
@@ -1470,6 +1470,42 @@
         "lastExp": 0,
         "lastSaturation": 0,
         "lastFoodEaten": ""
+      }
+    ],
+    "myreqitem": [
+      {
+        "name": "Kabayo",
+        "icon": "🫏",
+        "key": "kabayo",
+        "shopPrice": 12999,
+        "sellPrice": 4000,
+        "flavorText": "Uncage for a new donkey pet!",
+        "type": "pet",
+        "uuid": "1761813048538_3406957a-35aa-4417-910d-1c8a0695a209",
+        "submissionDate": 1761813048538,
+        "index": 0,
+        "cannotToss": false,
+        "dislikes": [],
+        "likes": [
+          "web:bmVha3l1dGk"
+        ]
+      },
+      {
+        "name": "Kabayo 2",
+        "icon": "🫏",
+        "key": "kabayo2",
+        "shopPrice": 12999,
+        "sellPrice": 4000,
+        "flavorText": "Uncage for a new donkey pet!",
+        "type": "pet",
+        "uuid": "1761813048538_3406957a-35aa-4417-910d-1c8a0695a209",
+        "submissionDate": 1761813048538,
+        "index": 0,
+        "cannotToss": false,
+        "dislikes": [
+          "web:bmVha3l1dGk"
+        ],
+        "likes": []
       }
     ]
   }
