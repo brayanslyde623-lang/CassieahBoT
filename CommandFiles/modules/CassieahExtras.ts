@@ -931,11 +931,19 @@ export class CanvCass implements CanvCass.Rect {
     if (options?.clipTo) {
       ctx.clip(options.clipTo);
     }
-    if (options?.width && options?.height) {
-      ctx.drawImage(image, x, y, options.width, options.height);
-    } else {
-      ctx.drawImage(image, x, y);
+
+    let width = options?.width;
+    let height = options?.height;
+
+    if (width && !height) {
+      height = (width / image.width) * image.height;
+    } else if (!width && height) {
+      width = (height / image.height) * image.width;
+    } else if (!width && !height) {
+      width = image.width;
+      height = image.height;
     }
+    ctx.drawImage(image, x, y, width, height);
 
     ctx.restore();
   }

@@ -81,12 +81,12 @@ export async function entry({
     });
 
     const bottomHalf = CanvCass.createRect({
-      top: canv.height / 2,
+      bottom: canv.bottom,
       left: 0,
       width: canv.width,
-      height: canv.height / 2,
+      height: canv.height / 1.3,
     });
-    const gradient = canv.createDim(bottomHalf, { color: "rgba(0,0,0,0.6)" });
+    const gradient = canv.createDim(bottomHalf, { color: "rgba(0,0,0,1)" });
     canv.drawBox({ rect: bottomHalf, fill: gradient });
     if (isBgDifferent || 1) {
       const cw = (canv.width - margin * 2) / 3;
