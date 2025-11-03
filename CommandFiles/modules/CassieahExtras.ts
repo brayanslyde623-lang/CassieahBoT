@@ -24,13 +24,28 @@ import { join } from "path";
 import { v4 } from "uuid";
 import { countEmojis } from "./unisym";
 
+/**
+ * CanvCass by lianecagara
+ * ========
+ * A high-level napi-rs canvas wrapper with quality of life features.
+ */
 export class CanvCass implements CanvCass.Rect {
+  /**
+   * Registers a new font file to the system.
+   * @param font contains a relative path and name of the font file.
+   */
   static registerFont(font: CanvCass.Font) {
     CanvCass.fonts.registerFromPath(font.path, font.name);
   }
 
-  static ID = v4();
+  /**
+   * Instance ID. Not always required.
+   */
+  static ID: string = v4();
 
+  /**
+   * Loads default text files for the first time.
+   */
   static async singleSetup() {
     logger("Registering fonts...", "CanvCass");
     this.registerFont({
@@ -49,12 +64,21 @@ export class CanvCass implements CanvCass.Rect {
     logger("Fonts registered!", "CanvCass");
   }
 
+  /**
+   * Reference to napi-rs canvas GlobalFonts
+   */
   static fonts = GlobalFonts;
 
   #config: CanvCass.CreateConfig;
 
   #canvas: Canvas;
   #context: SKRSContext2D;
+
+  /**
+   * Creates a multi-purpose rect object that contains important layout-related coordinates like left, top, width, height, right, bottom, centerX, and centerY
+   * @param basis The reference partial data like width, height, top and left
+   * @returns a rect.
+   */
   static createRect(basis: Partial<CanvCass.MakeRectParam>): CanvCass.Rect {
     const { width, height } = basis;
 
@@ -101,7 +125,17 @@ export class CanvCass implements CanvCass.Rect {
     };
   }
 
+  /**
+   * Creates a CanvCass instance with just width and height.
+   * @param width
+   * @param height
+   */
   constructor(width: number, height: number);
+
+  /**
+   * Creates a CanvCass instance with width, height and background.
+   * @param config
+   */
   constructor({ width, height, background }: CanvCass.CreateConfig);
 
   constructor(...args: [number, number] | [CanvCass.CreateConfig]) {
@@ -127,62 +161,121 @@ export class CanvCass implements CanvCass.Rect {
     return this;
   }
 
+  /**
+   * @returns The pre-made canvas size.
+   */
   static premade() {
     return new CanvCass(CanvCass.preW, CanvCass.preH);
   }
 
+  /**
+   * Changes the resolution of the canvas, might cost more memory.
+   * @param size the multiplier for current resolution.l
+   */
   changeScale(size: number) {
     this.#canvas.width *= size;
     this.#canvas.height *= size;
     this.#context.scale(size, size);
   }
 
+  /**
+   * Resets transform and width and height of the canvas.
+   */
   reset() {
     this.#context.resetTransform();
     this.#canvas.width = this.#config.width;
     this.#canvas.height = this.#config.height;
   }
 
+  /**
+   * Default width.
+   */
   static preW = 1024;
+  /**
+   * Default height.
+   */
   static preH = 768;
 
+  /**
+   * Exposes the configuration (do not modify.)
+   */
   get config() {
     return this.#config;
   }
 
+  /**
+   * Exposes the current canvas width (might not be reliable when scaled.)
+   */
   get realWidth() {
     return this.#canvas.width;
   }
 
+  /**
+   * Exposes the current canvas height (might not be reliable when scaled.)
+   */
   get realHeight() {
     return this.#canvas.height;
   }
 
+  /**
+   * Exposes the configuration width. (Read-only)
+   */
   get width() {
     return this.#config.width;
   }
+
+  /**
+   * Exposes the configuration width. (Read-only)
+   */
   get height() {
     return this.#config.height;
   }
+
+  /**
+   * Left (X) coordinates of the canvas. Always zero.
+   */
   get left() {
     return 0;
   }
+
+  /**
+   * Top (Y) coordinates of the canvas. Always zero.
+   */
   get top() {
     return 0;
   }
+
+  /**
+   * Right (X) coordinates of the canvas. Always equal to the width.
+   */
   get right() {
     return this.width;
   }
+
+  /**
+   * Bottom (Y) coordinates of the canvas. Always equal to the height.
+   */
   get bottom() {
     return this.height;
   }
+
+  /**
+   * Center (X) coordinates of the canvas. Always equal to the width/2.
+   */
   get centerX() {
     return this.width / 2;
   }
+
+  /**
+   * Center (Y) coordinates of the canvas. Always equal to the height/2.
+   */
   get centerY() {
     return this.height / 2;
   }
 
+  /**
+   * Draws the default background.
+   */
   async drawBackground() {
     if (this.#config.background !== null) {
       this.drawBox({
@@ -208,6 +301,9 @@ export class CanvCass implements CanvCass.Rect {
     }
   }
 
+  /**
+   * Creates an isolated rect object using canvas rect-related properties.
+   */
   get rect(): CanvCass.Rect {
     return {
       width: this.width,
@@ -221,6 +317,10 @@ export class CanvCass implements CanvCass.Rect {
     };
   }
 
+  /**
+   * Gives (unsafe) access to the actual canvas context. Automatically saves and restore. DO NOT USE SAVE AND RESTORE inside.
+   * * @param cb the callback that might use the context.
+   */
   withContext(cb: (ctx: SKRSContext2D) => void): void {
     const ctx = this.#context;
     ctx.save();
@@ -231,10 +331,16 @@ export class CanvCass implements CanvCass.Rect {
     }
   }
 
+  /**
+   * Returns a png buffer of the canvas.
+   */
   toPng() {
     return this.#canvas.toBuffer("image/png");
   }
 
+  /**
+   * Creates and returns a ReadStream of the canvas (uses the disk temporarily.)
+   */
   toStream(): Promise<ReadStream> {
     const tempDir = join(process.cwd(), "temp");
     if (!existsSync(tempDir)) {
@@ -269,8 +375,19 @@ export class CanvCass implements CanvCass.Rect {
     });
   }
 
+  /**
+   * Draws or paints a box or a rectangular 2d shape with the specificed rect and fill/stroke.
+   */
   drawBox(style?: { rect: CanvCass.Rect } & Partial<CanvCass.DrawParam>): void;
+
+  /**
+   * Draws or paints a box or a rectangular 2d shape with the specificed rect-creation config and fill/stroke.
+   */
   drawBox(style: CanvCass.DrawBoxInlineParam): void;
+
+  /**
+   * Draws or paints a box or a rectangular 2d shape with the legacy fillRect/strokeRect format but with style as 5th argument.
+   */
   drawBox(
     left: number,
     top: number,
@@ -342,6 +459,11 @@ export class CanvCass implements CanvCass.Rect {
     ctx.restore();
   }
 
+  /**
+   * Draws any polygon possible using points.
+   * @param points
+   * @param style
+   */
   drawPolygon(points: number[][], style?: CanvCass.DrawParam): void {
     if (!Array.isArray(points) || points.length < 3) {
       throw new Error("drawPolygon requires at least 3 points.");
@@ -375,6 +497,12 @@ export class CanvCass implements CanvCass.Rect {
     ctx.restore();
   }
 
+  /**
+   * A high-level way to draw a line.
+   * @param start
+   * @param end
+   * @param style
+   */
   drawLine(
     start: [number, number],
     end: [number, number],
@@ -418,12 +546,23 @@ export class CanvCass implements CanvCass.Rect {
     ctx.restore();
   }
 
+  /**
+   * Draws a 360° circle with the specificed cx, cy and radius.
+   * @param center
+   * @param radius
+   * @param style
+   */
   drawCircle(
     center: [number, number],
     radius: number,
     style?: CanvCass.DrawCircleParamN
   ): void;
+
+  /**
+   * Draws a 360° circle with the specificed config object.
+   */
   drawCircle(config: CanvCass.DrawCircleParam): void;
+
   drawCircle(
     arg1: [number, number] | CanvCass.DrawCircleParam,
     arg2?: number,
@@ -476,6 +615,11 @@ export class CanvCass implements CanvCass.Rect {
     ctx.restore();
   }
 
+  /**
+   * A high level way of drawing a child with proper layout (flex-like) by providing a container and a children.
+   * @param container
+   * @param children
+   */
   drawFlexbox(
     container: {
       rect: CanvCass.Rect;
@@ -601,13 +745,31 @@ export class CanvCass implements CanvCass.Rect {
     });
   }
 
+  /**
+   * Another High-Level function that fills text and breaking the text automatically if a width is specified.
+   * @param text The content
+   * @param x the reference x.
+   * @param y the reference y.
+   * @param options More customization like align, vAlign, breakMaxWidth and breakTo.
+   */
   drawText(
     text: string,
     x: number,
     y: number,
     options?: Partial<CanvCass.DrawTextParam>
   ): void;
+
+  /**
+   * Another High-Level function that fills text and breaking the text automatically if a width is specified.
+   * @param text The content
+   * @param options X, Y and customization like align, vAlign, breakMaxWidth and breakTo.
+   */
   drawText(text: string, options: Partial<CanvCass.DrawTextParam>): void;
+
+  /**
+   * Another High-Level function that fills text and breaking the text automatically if a width is specified.
+   * @param config Text, X, Y and customization like align, vAlign, breakMaxWidth and breakTo.
+   */
   drawText(config: CanvCass.DrawTextParam): void;
 
   drawText(
@@ -710,6 +872,12 @@ export class CanvCass implements CanvCass.Rect {
     ctx.restore();
   }
 
+  /**
+   * Creats a slightly dim gradient, perfect for photo overlays.
+   * @param rect
+   * @param options
+   * @returns a canvas gradient.
+   */
   createDim(
     rect: CanvCass.Rect,
     options?: {
@@ -739,12 +907,23 @@ export class CanvCass implements CanvCass.Rect {
     return gradient;
   }
 
+  /**
+   * Converts any CanvCass Rect into a Path2D.
+   * @param rect
+   * @returns A Path2D
+   */
   static rectToPath(rect: CanvCass.Rect): Path2D {
     const path = new Path2D();
     path.rect(rect.left, rect.top, rect.width, rect.height);
     return path;
   }
 
+  /**
+   * Creates a circle path 2D.
+   * @param center
+   * @param radius
+   * @returns
+   */
   static createCirclePath(center: [number, number], radius: number): Path2D {
     const path = new Path2D();
     path.arc(center[0], center[1], radius, 0, Math.PI * 2);
@@ -774,6 +953,10 @@ export class CanvCass implements CanvCass.Rect {
     ]);
   }
 
+  /**
+   * Typically measures a text with a given config.
+   * @param style
+   */
   measureText(style: CanvCass.MeasureTextParam) {
     const ctx = this.#context;
     ctx.save();
@@ -787,6 +970,12 @@ export class CanvCass implements CanvCass.Rect {
     return result;
   }
 
+  /**
+   * Splits lines based on max width and text config.
+   * @param style
+   * @param maxW
+   * @returns
+   */
   splitBreak(style: CanvCass.MeasureTextParam, maxW: number) {
     const lines: string[] = [];
     const paragraphs = style.text.split("\n");
@@ -866,6 +1055,14 @@ export class CanvCass implements CanvCass.Rect {
     return lines;
   }
 
+  /**
+   * Generates an angled gradient.
+   * @param width
+   * @param height
+   * @param angleRad
+   * @param colorStops
+   * @returns
+   */
   tiltedGradient(
     width: number,
     height: number,
@@ -894,23 +1091,45 @@ export class CanvCass implements CanvCass.Rect {
     return gradient;
   }
 
+  /**
+   * Draws any image src, Image, or Buffer.
+   * @param image
+   * @param left
+   * @param top
+   * @param options
+   */
   async drawImage(
     image: Image,
-    x: number,
-    y: number,
-    options?: CanvCass.DrawImageConfig
-  ): Promise<void>;
-  async drawImage(
-    src: string | Buffer,
-    x: number,
-    y: number,
+    left: number,
+    top: number,
     options?: CanvCass.DrawImageConfig
   ): Promise<void>;
 
+  /**
+   * Draws any image src, Image, or Buffer.
+   * @param image
+   * @param left
+   * @param top
+   * @param options
+   */
+  async drawImage(
+    src: string | Buffer,
+    left: number,
+    top: number,
+    options?: CanvCass.DrawImageConfig
+  ): Promise<void>;
+
+  /**
+   * Draws any image src, Image, or Buffer.
+   * @param image
+   * @param left
+   * @param top
+   * @param options
+   */
   async drawImage(
     imageOrSrc: string | Buffer | Image,
-    x: number,
-    y: number,
+    left: number,
+    top: number,
     options?: CanvCass.DrawImageConfig
   ): Promise<void> {
     const ctx = this.#context;
@@ -940,24 +1159,29 @@ export class CanvCass implements CanvCass.Rect {
       width = image.width;
       height = image.height;
     }
+    let drawWidth = width;
+    let drawHeight = height;
 
     if (options?.maximizeFit) {
-      const targetW = width;
-      const targetH = height;
-
-      const scale = Math.max(targetW / image.width, targetH / image.height);
-
-      const newW = image.width * scale;
-      const newH = image.height * scale;
-
-      x -= (newW - targetW) / 2;
-      y -= (newH - targetH) / 2;
-
-      width = newW;
-      height = newH;
+      const ratio = image.width / image.height;
+      if (width > height * ratio) {
+        drawWidth = height * ratio;
+      } else if (height > width / ratio) {
+        drawHeight = width / ratio;
+      }
     }
 
-    ctx.drawImage(image, x, y, width, height);
+    if (!options.clipTo) {
+      const r = CanvCass.createRect({
+        width,
+        height,
+        left,
+        top,
+      });
+      ctx.clip(CanvCass.rectToPath(r));
+    }
+
+    ctx.drawImage(image, left, top, drawWidth, drawHeight);
 
     ctx.restore();
   }
