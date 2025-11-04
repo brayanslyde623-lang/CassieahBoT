@@ -317,6 +317,14 @@ export class CanvCass implements CanvCass.Rect {
     };
   }
 
+  setBlendMode(compositeOperation: SKRSContext2D["globalCompositeOperation"]) {
+    this.#context.globalCompositeOperation = compositeOperation;
+  }
+
+  resetBlendMode() {
+    this.#context.globalCompositeOperation = "source-over";
+  }
+
   /**
    * Gives (unsafe) access to the actual canvas context. Automatically saves and restore. DO NOT USE SAVE AND RESTORE inside.
    * * @param cb the callback that might use the context.
