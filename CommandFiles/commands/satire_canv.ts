@@ -84,6 +84,7 @@ export async function entry({
     times++;
     try {
       const canv = new CanvCass(720, 720);
+      await canv.drawBackground();
       const margin = 55;
 
       await utils.delay(500);
@@ -97,7 +98,7 @@ export async function entry({
         bottom: canv.bottom,
         left: 0,
         width: canv.width,
-        height: canv.height / 1.3,
+        height: canv.height / 1.1,
       });
       const gradient = canv.createDim(bottomHalf, { color: "rgba(0,0,0,1)" });
       canv.drawBox({ rect: bottomHalf, fill: gradient });
@@ -132,7 +133,7 @@ export async function entry({
 
         const circleBox = CanvCass.createRect({
           left: canv.left + margin,
-          bottom: headlineResult.rect.top - headlineResult.lineHeight,
+          bottom: headlineResult.rect.top - headlineResult.lineHeight / 2,
           width: cw,
           height: cw,
         });
