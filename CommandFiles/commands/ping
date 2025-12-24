@@ -1,0 +1,65 @@
+import os from "os";
+
+interface PingContext {
+  api: any;
+  event: any;
+}
+
+export default {
+  config: {
+    name: "ping",
+    aliases: ["pong", "status"],
+    version: "3.3.0",
+    author: "Brayan stack's",
+    description: "Ping + uptime (jours) avec auto-suppression",
+    category: "system",
+    cooldowns: 3
+  },
+
+  onStart: async function ({ api, event }: PingContext): Promise<void> {
+    const start: number = Date.now();
+
+    // Message temporaire
+    api.sendMessage("⚡ Analyse en cours...", event.threadID, (err: any, info: any) => {
+      if (err) return;
+
+      const ping: number = Date.now() - start;
+
+      // ⏱ UPTIME avec jours
+      const uptime: number = process.uptime();
+      const days: number = Math.floor(uptime / 86400);
+      const hours: number = Math.floor((uptime % 86400) / 3600);
+      const minutes: number = Math.floor((uptime % 3600) / 60);
+      const seconds: number = Math.floor(uptime % 60);
+
+      const usedMem: string = (process.memoryUsage().rss / 1024 / 1024).toFixed(1);
+      const totalMem: string = (os.totalmem() / 1024 / 1024 / 1024).toFixed(1);
+      const cpu: string = os.cpus()[0].model.split("@")[0];
+
+      const result: string = `
+╔════════════════════════════╗
+║        🤖 BOT STATUS        ║
+╠════════════════════════════╣
+║ ⚡ Ping       : ${ping} ms
+║ ⏱ Uptime     : ${days}j ${hours}h ${minutes}m ${seconds}s
+║ 💾 RAM        : ${usedMem} MB / ${totalMem} GB
+║ 🧠 CPU        : ${cpu}
+║ 🛠 Version    : v3.3.0
+║ 🟢 Statut     : En ligne 🩷
+╚════════════════════════════╝
+      `;
+
+      // Supprimer "Analyse en cours..."
+      api.unsendMessage(info.messageID);
+
+      // Envoyer le résultat puis supprimer après 20s
+      api.sendMessage(result, event.threadID, (err2: any, finalMsg: any) => {
+        if (err2) return;
+
+        setTimeout(() => {
+          api.unsendMessage(finalMsg.messageID);
+        }, 20000);
+      });
+    });
+  }
+};
