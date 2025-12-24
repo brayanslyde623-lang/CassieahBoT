@@ -171,8 +171,8 @@ Follow these steps exactly. If the bot doesn’t work, check the logs first befo
 
 Commands are defined in JavaScript/TypeScript files. Here’s the format:
 
-```javascript
-export const meta = {
+```typescript
+export const meta: CommandMeta = {
     name: "example",
     otherNames: ["ex", "test"],
     author: "Your Name",
@@ -180,146 +180,14 @@ export const meta = {
     description: "Basic command example.",
     usage: "{prefix}{name} [arg]",
     category: "Misc",
-    noPrefix: "both",
-    permissions: [0],
-    botAdmin: false,
+    role: 0,
     waitingTime: 5,
-    ext_plugins: {
-        output: "^1.0.0",
-        canvas: "^1.0.0"
-    },
-    whiteList: null,
-    args: [
-        {
-            degree: 0,
-            fallback: null,
-            response: "Provide an argument.",
-            search: "arg",
-            required: false
-        }
-    ],
-    supported: "^4.0.0"
 };
 
-export async function entry({ input, output, args }) {
+export async function entry({ input, output, args }: CommandContext) {
     output.reply(`You said: ${args[0] || "nothing"}`);
 }
 ```
-
-### Meta Options
-
-- **name**: Primary command name.
-- **otherNames**: Array of aliases.
-- **author**: Command author.
-- **version**: Command version (e.g., `1.0.0`).
-- **description**: What the command does.
-- **usage**: Syntax, including `{prefix}`.
-- **category**: Command category.
-- **noPrefix**: `"both"`, `true`, or `false` for prefix requirement.
-- **permissions**: Array of `[0, 1, 2]` (0: anyone, 1: group admin, 2: bot admin).
-- **botAdmin**: `true` if restricted to bot admins.
-- **waitingTime**: Cooldown in seconds.
-- **ext_plugins**: Required plugins (e.g., `canvas: "^1.0.0"` for images).
-- **whiteList**: Array of allowed user IDs or `null`.
-- **args**: Argument configs:
-  - **degree**: Argument position (0-based).
-  - **fallback**: Default value.
-  - **response**: Error message for invalid args.
-  - **search**: Argument identifier.
-  - **required**: `true` or `false`.
-- **supported**: Minimum CassieahBoT version (`^4.0.0`).
-
-### Context Variables
-
-- **input**:
-  - `input.text`: Command text.
-  - `input.senderID`: Sender’s ID.
-  - `input.threadID`: Thread ID.
-  - `input.arguments`: Argument array.
-  - `input.isAdmin`: Admin status.
-  - `input.replier`: Replier object.
-- **output**:
-  - `output.reply(text)`: Send text reply.
-  - `output.error(err)`: Send error.
-  - `output.send(text, id)`: Send to specific ID.
-  - `output.add(user, thread)`: Add user to thread.
-  - `output.kick(user, thread)`: Kick user.
-  - `output.unsend(mid)`: Unsend message.
-  - `output.reaction(emoji, mid)`: Add reaction.
-  - `output.sendImage(buffer, id)`: Send image (new in 4.0+).
-- **event**: Raw event data.
-- **api**: Platform API.
-- **commandName**: Command name.
-- **args**: Parsed arguments.
-
-### Example Command
-
-A command using **napi-rs canvas** to generate an image:
-
-```javascript
-import { createCanvas, loadImage } from '@napi-rs/canvas';
-
-export const meta = {
-    name: "meme",
-    otherNames: ["memegen"],
-    author: "Your Name",
-    version: "1.0.0",
-    description: "Generates a meme with custom text.",
-    usage: "{prefix}meme <text>",
-    category: "Fun",
-    noPrefix: false,
-    permissions: [0],
-    botAdmin: false,
-    waitingTime: 10,
-    ext_plugins: {
-        output: "^1.0.0",
-        canvas: "^1.0.0"
-    },
-    whiteList: null,
-    args: [
-        {
-            degree: 0,
-            fallback: null,
-            response: "Provide text for the meme.",
-            search: "text",
-            required: true
-        }
-    ],
-    supported: "^4.0.0"
-};
-
-export async function entry({ input, output, args }) {
-    const text = args[0];
-    const canvas = createCanvas(500, 500);
-    const ctx = canvas.getContext('2d');
-
-    const image = await loadImage('public/meme-template.jpg');
-    ctx.drawImage(image, 0, 0, 500, 500);
-
-    ctx.font = '30px Impact';
-    ctx.fillStyle = 'white';
-    ctx.strokeStyle = 'black';
-    ctx.lineWidth = 2;
-    ctx.textAlign = 'center';
-    ctx.fillText(text.toUpperCase(), 250, 450);
-    ctx.strokeText(text.toUpperCase(), 250, 450);
-
-    const buffer = await canvas.encode('png');
-    output.sendImage(buffer, input.threadID);
-}
-```
-
-**Note**: Place a `meme-template.jpg` in `public/`. It’s not included.
-
-## Core Files
-
-- **Cassieah.js**: Core logic, command, and plugin handling.
-- **api.js**: Developer API handlers.
-- **loadCommand.js**: Command loading and registration.
-- **loadPlugins.js**: Plugin management.
-- **extends.js**: Additional utilities.
-
-Don’t modify these unless you’re certain. Always run `npm run update` first.
 
 ## License
 
@@ -333,3 +201,317 @@ See the `LICENSE` file for details.
 ---
 
 **Important**: Always run `npm run update` before editing any files, or updates will break. If the bot isn’t responding, check the logs (Railway or local). Most issues are due to misconfigured tokens, cookies, or roles. Don’t skip steps, and don’t expect it to work if you half-read this.
+
+## Ultimate Guide to Writing Commands in the CassieahBoT Messenger Bot Framework  
+*(Current as of December 24, 2025 – Modern Best Practices Only)*
+
+This is the **final, production-hardened reference**.  
+Every pattern below is used daily in the largest CassieahBoT economies.  
+Prioritized from **most critical** to advanced.
+
+---
+
+### 1. `ctx` – The Core Context Object (Most Important)
+
+`ctx` is passed to **every** command handler. It contains everything.
+
+**Always destructure directly in parameters** (mandatory style):
+
+```ts
+async handler({ input, output, money }) {
+  // Now use input, output, money directly
+}
+```
+
+This is the cleanest, fastest, and most consistent way.
+
+Do **not** do this:
+```ts
+async handler(ctx) {
+  const { input, output, money } = ctx; // Verbose, unnecessary
+}
+```
+
+Do **not** access via `ctx.input.body` — always destructure in params.
+
+---
+
+### 2. Command Metadata (`meta: CommandMeta`) – Required Fields
+
+```ts
+export const meta: CommandMeta = {
+  name: "vault",
+  otherNames: ["v", "safe"],
+  description: "Secure storage with deposit/withdrawal fees",
+  usage: "{prefix}{name} [deposit|withdraw|list]",
+  category: "Economy",
+  version: "4.0.0",
+  icon: "🔒",
+  waitingTime: 3,   // cooldown in seconds per user
+  role: 0,          // 0=everyone, 1=thread admin+, 1.5=moderator+, 2=bot admin
+};
+```
+
+**`waitingTime`** → automatic per-user cooldown  
+**`role`** → automatic block if insufficient
+
+Read current user role:
+```ts
+input.role  // returns 0, 1, 1.5, or 2
+```
+
+---
+
+### 3. Command Style – Simple & Powerful
+
+```ts
+export const style: CommandStyle = {
+  title: "🔒 Vault System",   // string = auto-styled title
+  contentFont: "fancy",
+  lineDeco: "altar",          // or "x"
+};
+```
+
+**If `style` is exported**, `output.reply(text)` and `output.send(text)` **automatically apply it**.
+
+```ts
+await output.reply("Styled automatically")
+await output.send("Also styled", "thread123")
+```
+
+Only use `replyStyled` when overriding.
+
+---
+
+### 4. Command Backbone – Two Options
+
+#### A. Simple (≤4 subcommands) → `defineEntry`
+
+```ts
+export const entry = defineEntry({
+  async deposit({ input, output, money }) {
+    // logic
+  },
+  async withdraw({ input, output, money }) {
+    // logic
+  },
+  async list({ input, output, money }) {
+    // logic
+  },
+});
+```
+
+#### B. Complex (5+ subcommands) → `SpectralCMDHome`
+
+```ts
+const home = new SpectralCMDHome({}, [
+  {
+    key: "deposit",
+    aliases: ["dep"],
+    async handler({ input, output, money }) {
+      // logic
+    }
+  },
+  {
+    key: "withdraw",
+    aliases: ["wd"],
+    async handler({ input, output, money }) {
+      // logic
+    }
+  },
+]);
+
+return home.runInContext(ctx);
+```
+
+---
+
+### 5. `input` – Message Intelligence
+
+```ts
+input.body                     // full message
+input.words                    // ["vault", "deposit", "1000"]
+input.args                     // ["deposit", "1000"]
+input.senderID                 // user ID
+input.messageReply?.senderID   // replied user
+input.mentions                 // { "@Name": "uid" }
+Object.values(input.mentions)[0] // first @ UID
+input.hasMentions              // true/false
+input.role                     // 0–2
+input.isGroup                  // group chat?
+```
+
+```ts
+input.test(/all/i)             // regex
+input.isMessage()              // text message
+input.hasWordOR("all", "max")  // any word
+input.hasWordAND("send", "money") // all words
+input.equal("yes")             // exact
+input.lower().body             // lowercase
+```
+
+```ts
+// Detect target user (used in transfers, trades, duels)
+const target = input.messageReply?.senderID || Object.values(input.mentions)[0];
+```
+
+---
+
+### 6. `output` – Messaging Power
+
+```ts
+await output.reply("Auto-styled")
+await output.send("To thread", "thread123")
+await output.attach("Caption", "https://img.jpg")
+await output.edit("Update", "mid123")
+await output.unsend("mid123")
+await output.reaction("❤️", "mid123")
+await output.wentWrong()
+await output.error(new Error("Fail"))
+```
+
+```ts
+const msg = await output.reply("Question?");
+msg.editSelf("Updated")
+msg.unsendSelf()
+msg.atReply(async ({ input, output }) => {
+  // handle reply
+})
+```
+
+```ts
+await output.confirm("Proceed?", async ({ yes }) => {
+  if (yes) await output.reply("Done");
+})
+```
+
+---
+
+### 7. Database – `money`
+
+```ts
+const user = await money.getCache(input.senderID)
+await money.setItem(input.senderID, {
+  money: user.money + 5000,
+  lastUsed: Date.now(),
+})
+```
+
+```ts
+// Top 10 richest (used for leaderboards)
+const top = (await money.getAllCache())
+  .sort((a, b) => (b.money ?? 0) - (a.money ?? 0))
+  .slice(0, 10);
+```
+
+---
+
+### 8. Inventory – `new Inventory()`
+
+```ts
+const inv = new Inventory(user.items ?? []);
+
+inv.has("sword")
+inv.getAmount("potion")
+inv.addOne({ key: "gem_123", name: "Ruby", icon: "💎" })
+inv.toss("potion", 5)
+inv.deleteOne("temp_456")
+
+await money.setItem(input.senderID, {
+  items: Array.from(inv),
+})
+```
+
+```ts
+// Display inventory (used in !inv, !vault list)
+inv.toUnique()
+  .map(i => `${i.icon} **${i.name}** ×${inv.getAmount(i.key)}`)
+  .join("\n")
+```
+
+---
+
+### 9. Bad Practices – Never Do These
+
+| Bad Practice                                   | Why It's Bad                                      |
+|------------------------------------------------|---------------------------------------------------|
+| `async handler(ctx) { const { ... } = ctx; }`  | Verbose — destructure in parameters               |
+| `ctx.input.body` instead of destructured       | Pollutes code, harder to read                     |
+| Using arrow functions for handlers             | Breaks context in rare cases                       |
+| Using `function()` syntax                      | Outdated, verbose                                 |
+| Manual role checks (`if (input.role < ...)`)   | Framework handles it automatically                |
+| Using `replyStyled` when `style` is exported   | Redundant — `reply` auto-applies style            |
+| Not using `Array.from(inventory)` on save      | Data loss — required for persistence              |
+| Using deprecated fields (`permissions`, etc.)  | Ignored by framework                              |
+| Not exporting `style`                          | Misses auto-styling benefit                       |
+
+---
+
+### 10. Real-World Complete Example – Vault Deposit (Production Pattern)
+
+This is how **real vault/bank deposit** commands are written in large economies.
+
+```ts
+{
+  key: "deposit",
+  async handler({ input, output, money }) {
+    const amount = parseBet(input.words[1], Infinity);
+    if (!amount) return output.reply("Invalid amount — use number or 'all'");
+
+    const user = await money.getCache(input.senderID);
+    if ((user.money ?? 0) < amount) return output.reply("Not enough money in wallet");
+
+    const fee = Math.floor(amount * 0.03);     // 3% deposit fee
+    const net = amount - fee;
+
+    const msg = await output.reply(
+      `Deposit **${formatCash(amount)}**?\n` +
+      `Fee: **${formatCash(fee)}** (3%)\n` +
+      `Net stored: **${formatCash(net)}**\n\n` +
+      `Reply **yes** to confirm`
+    );
+
+    msg.atReply(async ({ input: confirmInput, output: confirmOutput }) => {
+      if (confirmInput.body.toLowerCase() !== "yes") {
+        return confirmOutput.reply("Deposit cancelled");
+      }
+
+      const updated = await money.getCache(input.senderID);
+      if ((updated.money ?? 0) < amount) {
+        return confirmOutput.reply("Balance changed — insufficient funds");
+      }
+
+      const vault = new Inventory(updated.vaultItems ?? []);
+      vault.addOne({
+        key: `dep_${Date.now()}`,
+        name: "Vault Deposit",
+        icon: "💰",
+        value: net,
+      });
+
+      await money.setItem(input.senderID, {
+        money: updated.money - amount,
+        vaultItems: Array.from(vault),
+      });
+
+      await confirmOutput.reply(`Deposited **${formatCash(net)}** after fee!`);
+    });
+  }
+}
+```
+
+This pattern is used for:
+- Bank deposits
+- Item storage
+- Tax payments
+- Trade confirmations
+- Any high-value transaction
+
+---
+
+**CassieahBoT — December 24, 2025**  
+Destructure in parameters. Export `style`. Use `output.reply()`.  
+Clean. Fast. Scalable.
+
+Now go build the next trillion-dollar virtual economy.  
+💰🔒
