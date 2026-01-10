@@ -12,7 +12,7 @@
   "GRADIENT_THEME": "retro",
   "knownURL": "https://cassidyredux.onrender.com",
   "noFB": false,
-  "PREFIX": "🫆,👀,🇨🇩",
+  "PREFIX": "£",
   "NICKNAME": "Cassidy Bot",
   "CUSTOM_STYLE": {
     "enabled": false,
@@ -21,7 +21,7 @@
   },
   "LOGO": "",
   "ADMINBOT": ["100088850810623", "61584246495211"],
-  "EXTRAPREFIX": ["€"],
+  "EXTRAPREFIX": ["|"],
   "MODERATORBOT": [],
   "exitOnError": false,
   "WEB_PASSWORD": "wsshiagwvkljijxxsvddidbdib+_*77s",
